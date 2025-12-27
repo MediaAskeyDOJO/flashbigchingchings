@@ -1,0 +1,41 @@
+name: Process communication markdown with Claude
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'communications/**.md'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run communication processor
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLAUDE_API_URL: ${{ secrets.CLAUDE_API_URL }}
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          ALLOWED_PUSHER: ${{ secrets.ALLOWED_PUSHER }}
+          OUTPUT_TO_ISSUES: 'true'
+          COMMIT_OUTPUTS: 'true'
+        run: |
+          python scripts/process_comm_md.py
